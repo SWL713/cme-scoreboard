@@ -206,18 +206,12 @@ def main():
     footer_right = f"Active CMEs: {active_count}"
     footer_line_2 = "Primary Obs: SOHO/LASCO   •   Forecast Basis: Avg + Median   •   Earth-Directed Only"
 
-    # small vertical separation
-    footer_y1 = FOOTER_Y_1
-    footer_y2 = FOOTER_Y_1 +20
+   footer_y1 = FOOTER_Y_1
+footer_y2 = FOOTER_Y_2
 
-    # Footer line 1
-    draw_centered_absolute(draw, footer_center, FOOTER_CENTER_X + 45, footer_y1, font_footer_main, COLOR_FOOTER_MAIN)
-
-    # Active CME count (right aligned)
-    draw_right(draw, footer_right, FOOTER_RIGHT_X, footer_y1, font_footer_main, COLOR_FOOTER_MAIN)
-
-    # Footer line 2
-    draw_centered_absolute(draw, footer_line_2, 600 + 156, footer_y2, font_footer_sub, COLOR_FOOTER_SUB)
+draw_centered_absolute(draw, footer_center, FOOTER_CENTER_X + 45, footer_y1, font_footer_main, COLOR_FOOTER_MAIN)
+draw_right(draw, footer_right, FOOTER_RIGHT_X, footer_y1, font_footer_main, COLOR_FOOTER_MAIN)
+draw_centered_absolute(draw, footer_line_2, 600 + 156, footer_y2, font_footer_sub, COLOR_FOOTER_SUB)
 
     os.makedirs("output", exist_ok=True)
     img.save(OUTPUT_PATH)
