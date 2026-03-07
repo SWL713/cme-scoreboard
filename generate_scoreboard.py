@@ -1,7 +1,6 @@
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 import os
-import textwrap
 
 # =========================================================
 # CONFIG
@@ -12,30 +11,30 @@ OUTPUT_PATH = "output/cme_scoreboard.png"
 FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 FONT_REGULAR = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 
-TEST_MODE = True   # True = use old sample data for layout testing
-                   # False = use live active data later
-
+TEST_MODE = True   # True = use sample data for layout testing
 MAX_ROWS = 5
 
 # =========================================================
 # COLUMN BOXES
-# These are LEFT/RIGHT bounds for each column
-# Adjust these if needed after testing
+# Tuned to your newest template
 # =========================================================
-COL_EVENT = (40, 285)
-COL_AVG = (295, 560)
-COL_MEDIAN = (565, 790)
-COL_MODELS = (800, 920)
-COL_NOTE = (930, 1160)
+COL_EVENT = (70, 315)
+COL_AVG = (330, 595)
+COL_MEDIAN = (610, 835)
+COL_MODELS = (860, 980)
+COL_NOTE = (995, 1155)
 
 # Vertical layout
-HEADER_Y = 255
-FIRST_ROW_Y = 330
+FIRST_ROW_Y = 322
 ROW_HEIGHT = 78
 
-# Footer
-UPDATED_X = 790
-UPDATED_Y = 817
+# Footer positions
+FOOTER_Y_1 = 815
+FOOTER_Y_2 = 845
+
+FOOTER_LEFT_X = 45
+FOOTER_CENTER_X = 600
+FOOTER_RIGHT_X = 1135
 
 # Colors
 COLOR_EVENT = (245, 245, 245)
@@ -43,7 +42,10 @@ COLOR_AVG = (115, 245, 255)
 COLOR_MEDIAN = (210, 180, 255)
 COLOR_MODELS = (255, 255, 255)
 COLOR_NOTE = (170, 255, 210)
-COLOR_UPDATED = (215, 220, 235)
+
+COLOR_FOOTER_MAIN = (215, 220, 235)
+COLOR_FOOTER_SUB = (170, 190, 210)
+COLOR_EMPTY = (220, 230, 240)
 
 # =========================================================
 # TEST DATA
@@ -102,6 +104,14 @@ def draw_left(draw, text, box, y, font, fill, padding=10):
     left, _ = box
     draw.text((left + padding, y), text, font=font, fill=fill)
 
+def draw_centered_absolute(draw, text, center_x, y, font, fill):
+    w, _ = text_size(draw, text, font)
+    draw.text((center_x - w / 2, y), text, font=font, fill=fill)
+
+def draw_right(draw, text, right_x, y, font, fill):
+    w, _ = text_size(draw, text, font)
+    draw.text((right_x - w, y), text, font=font, fill=fill)
+
 def truncate_text(draw, text, font, max_width):
     if text_size(draw, text, font)[0] <= max_width:
         return text
@@ -113,13 +123,10 @@ def truncate_text(draw, text, font, max_width):
     return "..."
 
 # =========================================================
-# DATA SOURCE
-# For now only test mode is implemented.
-# Later we replace get_live_events() with real API logic.
+# DATA
 # =========================================================
 def get_live_events():
-    # Placeholder for later live API pull
-    # For now return empty list to simulate "no active CMEs"
+    # Placeholder for later live API logic
     return []
 
 def get_events():
@@ -139,26 +146,28 @@ def main():
 
     events = get_events()
 
-    font_event_base = load_font(FONT_REGULAR, 24)
-    font_avg_base = load_font(FONT_BOLD, 28)
-    font_median_base = load_font(FONT_REGULAR, 24)
-    font_models_base = load_font(FONT_BOLD, 26)
-    font_note_base = load_font(FONT_REGULAR, 22)
-    font_updated = load_font(FONT_REGULAR, 16)
+    font_event = load_font(FONT_REGULAR, 23)
+    font_avg = load_font(FONT_BOLD, 28)
+    font_median = load_font(FONT_REGULAR, 24)
+    font_models = load_font(FONT_BOLD, 26)
+    font_note = load_font(FONT_REGULAR, 22)
+
+    font_footer_main = load_font(FONT_REGULAR, 16)
+    font_footer_sub = load_font(FONT_REGULAR, 15)
     font_empty = load_font(FONT_REGULAR, 28)
 
     if not events:
         empty_text = "No active Earth-directed CMEs currently listed."
-        draw.text((300, 410), empty_text, font=font_empty, fill=(220, 230, 240))
+        draw_centered_absolute(draw, empty_text, 600, 410, font_empty, COLOR_EMPTY)
     else:
         for i, row in enumerate(events[:MAX_ROWS]):
             y = FIRST_ROW_Y + (i * ROW_HEIGHT)
 
             # EVENT
-            event_max_width = COL_EVENT[1] - COL_EVENT[0] - 20
-            event_font = fit_font(draw, row["event"], FONT_REGULAR, 24, 18, event_max_width)
+            event_max_width = COL_EVENT[1] - COL_EVENT[0] - 16
+            event_font = fit_font(draw, row["event"], FONT_REGULAR, 23, 18, event_max_width)
             event_text = truncate_text(draw, row["event"], event_font, event_max_width)
-            draw_left(draw, event_text, COL_EVENT, y, event_font, COLOR_EVENT, padding=8)
+            draw_left(draw, event_text, COL_EVENT, y, event_font, COLOR_EVENT, padding=6)
 
             # AVG
             avg_max_width = COL_AVG[1] - COL_AVG[0] - 20
@@ -173,8 +182,8 @@ def main():
             draw_centered(draw, median_text, COL_MEDIAN, y, median_font, COLOR_MEDIAN)
 
             # MODELS
-            models_text = str(row["models"])
-            draw_centered(draw, models_text, COL_MODELS, y, font_models_base, COLOR_MODELS)
+            models_box = COL_MODELS
+            draw_centered(draw, str(row["models"]), models_box, y, font_models, COLOR_MODELS)
 
             # NOTE
             note_max_width = COL_NOTE[1] - COL_NOTE[0] - 20
@@ -182,8 +191,23 @@ def main():
             note_text = truncate_text(draw, row["note"], note_font, note_max_width)
             draw_centered(draw, note_text, COL_NOTE, y, note_font, COLOR_NOTE)
 
-    updated_text = f"Updated UTC: {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}"
-    draw.text((UPDATED_X, UPDATED_Y), updated_text, font=font_updated, fill=COLOR_UPDATED)
+    # =====================================================
+    # FOOTER
+    # =====================================================
+    now_utc = datetime.utcnow().strftime("%Y-%m-%d %H:%M")
+    active_count = len(events)
+
+    footer_left = "Source: NASA CCMC CME Scoreboard"
+    footer_center = f"Last Updated: {now_utc} UTC"
+    footer_right = f"Active CMEs: {active_count}"
+
+    footer_line_2 = "Primary Obs: SOHO/LASCO   •   Forecast Basis: Avg + Median   •   Earth-Directed Only"
+
+    draw.text((FOOTER_LEFT_X, FOOTER_Y_1), footer_left, font=font_footer_main, fill=COLOR_FOOTER_MAIN)
+    draw_centered_absolute(draw, footer_center, FOOTER_CENTER_X, FOOTER_Y_1, font_footer_main, COLOR_FOOTER_MAIN)
+    draw_right(draw, footer_right, FOOTER_RIGHT_X, FOOTER_Y_1, font_footer_main, COLOR_FOOTER_MAIN)
+
+    draw_centered_absolute(draw, footer_line_2, 600, FOOTER_Y_2, font_footer_sub, COLOR_FOOTER_SUB)
 
     os.makedirs("output", exist_ok=True)
     img.save(OUTPUT_PATH)
