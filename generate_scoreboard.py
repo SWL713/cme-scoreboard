@@ -33,7 +33,7 @@ ROW_HEIGHT = 78
 # FOOTER POSITIONS
 # =========================================================
 FOOTER_Y_1 = 920
-FOOTER_Y_2 = 950
+FOOTER_Y_2 = 965
 
 FOOTER_CENTER_X = 600
 FOOTER_RIGHT_X = 1135
@@ -156,8 +156,8 @@ def main():
     font_models = load_font(FONT_BOLD, 26)
     font_note = load_font(FONT_REGULAR, 22)
 
-    font_footer_main = load_font(FONT_REGULAR, 32)
-    font_footer_sub = load_font(FONT_REGULAR, 30)
+    font_footer_main = load_font(FONT_REGULAR, 30)
+    font_footer_sub = load_font(FONT_REGULAR, 28)
     font_empty = load_font(FONT_REGULAR, 28)
 
     if not events:
@@ -207,8 +207,8 @@ def main():
     footer_line_2 = "Primary Obs: SOHO/LASCO   •   Forecast Basis: Avg + Median   •   Earth-Directed Only"
 
     # small vertical separation
-    footer_y1 = FOOTER_Y_1 
-    footer_y2 = FOOTER_Y_1 -30
+    footer_y1 = FOOTER_Y_1
+    footer_y2 = FOOTER_Y_1 
 
     # Footer line 1
     draw_centered_absolute(draw, footer_center, FOOTER_CENTER_X + 45, footer_y1, font_footer_main, COLOR_FOOTER_MAIN)
