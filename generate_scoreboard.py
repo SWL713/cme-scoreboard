@@ -33,10 +33,11 @@ ROW_HEIGHT = 78
 # FOOTER POSITIONS
 # =========================================================
 FOOTER_Y_1 = 920
-FOOTER_Y_2 = 965
+FOOTER_Y_2 = 955
 
 FOOTER_CENTER_X = 600
 FOOTER_RIGHT_X = 1135
+FOOTER_LINE2_CENTER_X = 756  # 600 + 156
 
 # =========================================================
 # COLORS
@@ -187,7 +188,8 @@ def main():
 
             # MODELS
             models_text = str(row["models"])
-            models_font = fit_font(draw, models_text, FONT_BOLD, 26, 18, COL_MODELS[1] - COL_MODELS[0] - 20)
+            models_max_width = COL_MODELS[1] - COL_MODELS[0] - 20
+            models_font = fit_font(draw, models_text, FONT_BOLD, 26, 18, models_max_width)
             draw_centered(draw, models_text, COL_MODELS, y, models_font, COLOR_MODELS)
 
             # NOTE
@@ -196,7 +198,7 @@ def main():
             note_text = truncate_text(draw, row["note"], note_font_fitted, note_max_width)
             draw_centered(draw, note_text, COL_NOTE, y, note_font_fitted, COLOR_NOTE)
 
-       # =====================================================
+    # =====================================================
     # FOOTER
     # =====================================================
     now_utc = datetime.utcnow().strftime("%Y-%m-%d %H:%M")
@@ -206,12 +208,32 @@ def main():
     footer_right = f"Active CMEs: {active_count}"
     footer_line_2 = "Primary Obs: SOHO/LASCO   •   Forecast Basis: Avg + Median   •   Earth-Directed Only"
 
-   footer_y1 = FOOTER_Y_1
-footer_y2 = FOOTER_Y_2
+    draw_centered_absolute(
+        draw,
+        footer_center,
+        FOOTER_CENTER_X + 45,
+        FOOTER_Y_1,
+        font_footer_main,
+        COLOR_FOOTER_MAIN
+    )
 
-draw_centered_absolute(draw, footer_center, FOOTER_CENTER_X + 45, footer_y1, font_footer_main, COLOR_FOOTER_MAIN)
-draw_right(draw, footer_right, FOOTER_RIGHT_X, footer_y1, font_footer_main, COLOR_FOOTER_MAIN)
-draw_centered_absolute(draw, footer_line_2, 600 + 156, footer_y2, font_footer_sub, COLOR_FOOTER_SUB)
+    draw_right(
+        draw,
+        footer_right,
+        FOOTER_RIGHT_X,
+        FOOTER_Y_1,
+        font_footer_main,
+        COLOR_FOOTER_MAIN
+    )
+
+    draw_centered_absolute(
+        draw,
+        footer_line_2,
+        FOOTER_LINE2_CENTER_X,
+        FOOTER_Y_2,
+        font_footer_sub,
+        COLOR_FOOTER_SUB
+    )
 
     os.makedirs("output", exist_ok=True)
     img.save(OUTPUT_PATH)
