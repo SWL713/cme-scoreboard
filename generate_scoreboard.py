@@ -11,7 +11,7 @@ OUTPUT_PATH = "output/cme_scoreboard.png"
 FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 FONT_REGULAR = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 
-TEST_MODE = True
+TEST_MODE = False
 MAX_ROWS = 5
 
 # =========================================================
