@@ -16,21 +16,23 @@ MAX_ROWS = 5
 
 # =========================================================
 # COLUMN BOXES
-# Tuned to your newest template
+# CME EVENT unchanged
+# Others shifted right per your instructions
 # =========================================================
-COL_EVENT = (70, 315)
-COL_AVG = (330, 595)
-COL_MEDIAN = (610, 835)
-COL_MODELS = (860, 980)
-COL_NOTE = (995, 1155)
+COL_EVENT = (70, 315)          # unchanged
+COL_AVG = (460, 725)           # was (330, 595)   -> +130
+COL_MEDIAN = (850, 1075)       # was (610, 835)   -> +240
+COL_MODELS = (1160, 1280)      # was (860, 980)   -> +300
+COL_NOTE = (1341, 1501)        # was (995, 1155)  -> +346
 
 # Vertical layout
 FIRST_ROW_Y = 322
 ROW_HEIGHT = 78
 
 # Footer positions
-FOOTER_Y_1 = 815
-FOOTER_Y_2 = 845
+# moved down by 105 px
+FOOTER_Y_1 = 920
+FOOTER_Y_2 = 950
 
 FOOTER_LEFT_X = 45
 FOOTER_CENTER_X = 600
@@ -152,8 +154,9 @@ def main():
     font_models = load_font(FONT_BOLD, 26)
     font_note = load_font(FONT_REGULAR, 22)
 
-    font_footer_main = load_font(FONT_REGULAR, 16)
-    font_footer_sub = load_font(FONT_REGULAR, 15)
+    # Footer fonts doubled-ish
+    font_footer_main = load_font(FONT_REGULAR, 32)
+    font_footer_sub = load_font(FONT_REGULAR, 30)
     font_empty = load_font(FONT_REGULAR, 28)
 
     if not events:
@@ -182,8 +185,7 @@ def main():
             draw_centered(draw, median_text, COL_MEDIAN, y, median_font, COLOR_MEDIAN)
 
             # MODELS
-            models_box = COL_MODELS
-            draw_centered(draw, str(row["models"]), models_box, y, font_models, COLOR_MODELS)
+            draw_centered(draw, str(row["models"]), COL_MODELS, y, font_models, COLOR_MODELS)
 
             # NOTE
             note_max_width = COL_NOTE[1] - COL_NOTE[0] - 20
@@ -205,7 +207,7 @@ def main():
 
     draw.text((FOOTER_LEFT_X, FOOTER_Y_1), footer_left, font=font_footer_main, fill=COLOR_FOOTER_MAIN)
     draw_centered_absolute(draw, footer_center, FOOTER_CENTER_X, FOOTER_Y_1, font_footer_main, COLOR_FOOTER_MAIN)
-    draw_right(draw, footer_right, FOOTER_RIGHT_X, FOOTER_Y_1, font_footer_main, COLOR_FOOTER_MAIN)
+    draw_right(draw, footer_right, FOOTER_RIGHT_X, FOOTER_Y_1, font=font_footer_main, fill=COLOR_FOOTER_MAIN)
 
     draw_centered_absolute(draw, footer_line_2, 600, FOOTER_Y_2, font_footer_sub, COLOR_FOOTER_SUB)
 
