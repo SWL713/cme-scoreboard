@@ -11,34 +11,36 @@ OUTPUT_PATH = "output/cme_scoreboard.png"
 FONT_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 FONT_REGULAR = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 
-TEST_MODE = True   # True = use sample data for layout testing
+TEST_MODE = True
 MAX_ROWS = 5
 
 # =========================================================
 # COLUMN BOXES
-# CME EVENT unchanged
-# Others shifted right per your instructions
 # =========================================================
-COL_EVENT = (70, 315)          # unchanged
-COL_AVG = (460, 725)           # was (330, 595)   -> +130
-COL_MEDIAN = (850, 1075)       # was (610, 835)   -> +240
-COL_MODELS = (1194, 1314)   # +34
-COL_NOTE = (1358, 1518)     # +17
+COL_EVENT = (70, 315)
+COL_AVG = (460, 725)
+COL_MEDIAN = (850, 1075)
+COL_MODELS = (1194, 1314)
+COL_NOTE = (1358, 1518)
 
-# Vertical layout
+# =========================================================
+# VERTICAL LAYOUT
+# =========================================================
 FIRST_ROW_Y = 322
 ROW_HEIGHT = 78
 
-# Footer positions
-# moved down by 105 px
+# =========================================================
+# FOOTER POSITIONS
+# =========================================================
 FOOTER_Y_1 = 920
 FOOTER_Y_2 = 950
 
-FOOTER_LEFT_X = 45
 FOOTER_CENTER_X = 600
 FOOTER_RIGHT_X = 1135
 
-# Colors
+# =========================================================
+# COLORS
+# =========================================================
 COLOR_EVENT = (245, 245, 245)
 COLOR_AVG = (115, 245, 255)
 COLOR_MEDIAN = (210, 180, 255)
@@ -154,7 +156,6 @@ def main():
     font_models = load_font(FONT_BOLD, 26)
     font_note = load_font(FONT_REGULAR, 22)
 
-    # Footer fonts doubled-ish
     font_footer_main = load_font(FONT_REGULAR, 32)
     font_footer_sub = load_font(FONT_REGULAR, 30)
     font_empty = load_font(FONT_REGULAR, 28)
@@ -166,13 +167,13 @@ def main():
         for i, row in enumerate(events[:MAX_ROWS]):
             y = FIRST_ROW_Y + (i * ROW_HEIGHT)
 
-            # EVENT
+            # CME EVENT
             event_max_width = COL_EVENT[1] - COL_EVENT[0] - 16
             event_font = fit_font(draw, row["event"], FONT_REGULAR, 23, 18, event_max_width)
             event_text = truncate_text(draw, row["event"], event_font, event_max_width)
             draw_left(draw, event_text, COL_EVENT, y, event_font, COLOR_EVENT, padding=6)
 
-            # AVG
+            # AVG ARRIVAL
             avg_max_width = COL_AVG[1] - COL_AVG[0] - 20
             avg_font = fit_font(draw, row["avg"], FONT_BOLD, 28, 20, avg_max_width)
             avg_text = truncate_text(draw, row["avg"], avg_font, avg_max_width)
@@ -185,29 +186,29 @@ def main():
             draw_centered(draw, median_text, COL_MEDIAN, y, median_font, COLOR_MEDIAN)
 
             # MODELS
-            draw_centered(draw, str(row["models"]), COL_MODELS, y, font_models, COLOR_MODELS)
+            models_text = str(row["models"])
+            models_font = fit_font(draw, models_text, FONT_BOLD, 26, 18, COL_MODELS[1] - COL_MODELS[0] - 20)
+            draw_centered(draw, models_text, COL_MODELS, y, models_font, COLOR_MODELS)
 
             # NOTE
             note_max_width = COL_NOTE[1] - COL_NOTE[0] - 20
-            note_font = fit_font(draw, row["note"], FONT_REGULAR, 22, 16, note_max_width)
-            note_text = truncate_text(draw, row["note"], note_font, note_max_width)
-            draw_centered(draw, note_text, COL_NOTE, y, note_font, COLOR_NOTE)
+            note_font_fitted = fit_font(draw, row["note"], FONT_REGULAR, 22, 16, note_max_width)
+            note_text = truncate_text(draw, row["note"], note_font_fitted, note_max_width)
+            draw_centered(draw, note_text, COL_NOTE, y, note_font_fitted, COLOR_NOTE)
 
-# =====================================================
-# FOOTER
-# =====================================================
-now_utc = datetime.utcnow().strftime("%Y-%m-%d %H:%M")
-active_count = len(events)
+    # =====================================================
+    # FOOTER
+    # =====================================================
+    now_utc = datetime.utcnow().strftime("%Y-%m-%d %H:%M")
+    active_count = len(events)
 
-footer_center = f"Last Updated: {now_utc} UTC"
-footer_right = f"Active CMEs: {active_count}"
+    footer_center = f"Last Updated: {now_utc} UTC"
+    footer_right = f"Active CMEs: {active_count}"
+    footer_line_2 = "Primary Obs: SOHO/LASCO   •   Forecast Basis: Avg + Median   •   Earth-Directed Only"
 
-footer_line_2 = "Primary Obs: SOHO/LASCO   •   Forecast Basis: Avg + Median   •   Earth-Directed Only"
-
-draw_centered_absolute(draw, footer_center, FOOTER_CENTER_X, FOOTER_Y_1, font_footer_main, COLOR_FOOTER_MAIN)
-draw_right(draw, footer_right, FOOTER_RIGHT_X, FOOTER_Y_1, font_footer_main, COLOR_FOOTER_MAIN)
-
-draw_centered_absolute(draw, footer_line_2, 600, FOOTER_Y_2, font_footer_sub, COLOR_FOOTER_SUB)
+    draw_centered_absolute(draw, footer_center, FOOTER_CENTER_X, FOOTER_Y_1, font_footer_main, COLOR_FOOTER_MAIN)
+    draw_right(draw, footer_right, FOOTER_RIGHT_X, FOOTER_Y_1, font_footer_main, COLOR_FOOTER_MAIN)
+    draw_centered_absolute(draw, footer_line_2, 600, FOOTER_Y_2, font_footer_sub, COLOR_FOOTER_SUB)
 
     os.makedirs("output", exist_ok=True)
     img.save(OUTPUT_PATH)
