@@ -196,7 +196,7 @@ def main():
             note_text = truncate_text(draw, row["note"], note_font_fitted, note_max_width)
             draw_centered(draw, note_text, COL_NOTE, y, note_font_fitted, COLOR_NOTE)
 
-     # =====================================================
+       # =====================================================
     # FOOTER
     # =====================================================
     now_utc = datetime.utcnow().strftime("%Y-%m-%d %H:%M")
@@ -206,14 +206,18 @@ def main():
     footer_right = f"Active CMEs: {active_count}"
     footer_line_2 = "Primary Obs: SOHO/LASCO   •   Forecast Basis: Avg + Median   •   Earth-Directed Only"
 
-    # Footer line 1 (shifted right 45px)
-    draw_centered_absolute(draw, footer_center, FOOTER_CENTER_X + 45, FOOTER_Y_1, font_footer_main, COLOR_FOOTER_MAIN)
+    # small vertical separation
+    footer_y1 = FOOTER_Y_1
+    footer_y2 = FOOTER_Y_1 + 12
 
-    # Active CME count (kept aligned to right edge)
-    draw_right(draw, footer_right, FOOTER_RIGHT_X, FOOTER_Y_1, font_footer_main, COLOR_FOOTER_MAIN)
+    # Footer line 1
+    draw_centered_absolute(draw, footer_center, FOOTER_CENTER_X + 45, footer_y1, font_footer_main, COLOR_FOOTER_MAIN)
 
-    # Footer line 2 (shifted right 156px)
-    draw_centered_absolute(draw, footer_line_2, 600 + 156, FOOTER_Y_2, font_footer_sub, COLOR_FOOTER_SUB)
+    # Active CME count (right aligned)
+    draw_right(draw, footer_right, FOOTER_RIGHT_X, footer_y1, font_footer_main, COLOR_FOOTER_MAIN)
+
+    # Footer line 2
+    draw_centered_absolute(draw, footer_line_2, 600 + 156, footer_y2, font_footer_sub, COLOR_FOOTER_SUB)
 
     os.makedirs("output", exist_ok=True)
     img.save(OUTPUT_PATH)
