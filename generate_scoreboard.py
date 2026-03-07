@@ -207,8 +207,8 @@ def main():
     footer_line_2 = "Primary Obs: SOHO/LASCO   •   Forecast Basis: Avg + Median   •   Earth-Directed Only"
 
     # small vertical separation
-    footer_y1 = FOOTER_Y_1 - 10
-    footer_y2 = FOOTER_Y_1 + 16
+    footer_y1 = FOOTER_Y_1 
+    footer_y2 = FOOTER_Y_1 + 30
 
     # Footer line 1
     draw_centered_absolute(draw, footer_center, FOOTER_CENTER_X + 45, footer_y1, font_footer_main, COLOR_FOOTER_MAIN)
