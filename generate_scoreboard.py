@@ -208,7 +208,7 @@ def main():
 
     # small vertical separation
     footer_y1 = FOOTER_Y_1
-    footer_y2 = FOOTER_Y_1 + 12
+    footer_y2 = FOOTER_Y_1 + 16
 
     # Footer line 1
     draw_centered_absolute(draw, footer_center, FOOTER_CENTER_X + 45, footer_y1, font_footer_main, COLOR_FOOTER_MAIN)
