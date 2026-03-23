@@ -1,36 +1,31 @@
-name: Generate CME Scoreboard
+name: CME Scoreboard
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: '0 6,18 * * *'   # 2x per day — 6am and 6pm UTC
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build-scoreboard:
+  generate-scoreboard:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 8
     steps:
-      - name: Check out repo
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Generate image
-        run: python generate_scoreboard.py
-
-      - name: Commit updated image
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add output/cme_scoreboard.png
-          git diff --staged --quiet || git commit -m "Update CME scoreboard image"
+          python-version: '3.11'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python generate_scoreboard.py
+        env:
+          PYTHONUNBUFFERED: '1'
+      - run: |
+          git config user.name "Scoreboard Bot"
+          git config user.email "actions@github.com"
+          git add output/ || true
+          git diff --staged --quiet || git commit -m "scoreboard: $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git pull --rebase --autostash origin main
           git push
