@@ -1,9 +1,8 @@
 name: CME Scoreboard
 
 on:
-  # schedule disabled — manual runs only until VPS is set up
-  # schedule:
-  #   - cron: '0 6,18 * * *'
+  schedule:
+    - cron: '0 12 * * *'    # once daily at noon UTC — keeps repo active
   workflow_dispatch:
 
 permissions:
