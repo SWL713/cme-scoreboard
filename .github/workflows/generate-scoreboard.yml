@@ -1,8 +1,9 @@
 name: CME Scoreboard
 
 on:
-  schedule:
-    - cron: '0 6,18 * * *'   # 2x per day — 6am and 6pm UTC
+  # schedule disabled — manual runs only until VPS is set up
+  # schedule:
+  #   - cron: '0 6,18 * * *'
   workflow_dispatch:
 
 permissions:
