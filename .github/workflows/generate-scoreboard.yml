@@ -1,8 +1,9 @@
 name: CME Scoreboard
 
 on:
-  schedule:
-    - cron: '0 12 * * *'    # once daily at noon UTC — keeps repo active
+  # Schedule disabled — runs every 30 min on Oracle VPS
+  # schedule:
+  #   - cron: '0 12 * * *'
   workflow_dispatch:
 
 permissions:

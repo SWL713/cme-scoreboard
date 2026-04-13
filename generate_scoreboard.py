@@ -4,6 +4,7 @@ from html.parser import HTMLParser
 import requests
 import re
 import os
+import json
 
 # =========================================================
 # CONFIG
@@ -493,6 +494,71 @@ def main():
     os.makedirs("output", exist_ok=True)
     img.save(OUTPUT_PATH)
     print(f"Saved {OUTPUT_PATH}")
+
+    # ── Telegram: post scoreboard when new CME appears ──
+    STATE_PATH = os.path.join(os.path.dirname(__file__), "data", "posted_cmes.json")
+    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat_ids = [
+        os.environ.get("TELEGRAM_CHAT_ID"),
+        os.environ.get("TELEGRAM_CHANNEL_ID"),
+    ]
+    chat_ids = [c for c in chat_ids if c]
+
+    if bot_token and chat_ids and active_events:
+        # Build set of current CME IDs (event timestamp as key)
+        current_ids = set()
+        for ev in active_events:
+            # Use first field (event time) as unique ID
+            eid = ev[0].strip() if ev and ev[0] else None
+            if eid:
+                current_ids.add(eid)
+
+        # Load previously posted IDs
+        os.makedirs(os.path.dirname(STATE_PATH), exist_ok=True)
+        posted = set()
+        if os.path.exists(STATE_PATH):
+            try:
+                with open(STATE_PATH) as f:
+                    posted = set(json.load(f))
+            except Exception:
+                posted = set()
+
+        new_cmes = current_ids - posted
+
+        if new_cmes:
+            print(f"[telegram] New CME(s) detected: {new_cmes}")
+            caption = (
+                f"<b>CME Scoreboard Update</b>\n"
+                f"{len(active_events)} active Earth-directed CME(s)\n"
+                f"New: {', '.join(sorted(new_cmes))}\n"
+                f"Updated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}"
+            )
+            for cid in chat_ids:
+                try:
+                    with open(OUTPUT_PATH, "rb") as photo:
+                        resp = requests.post(
+                            f"https://api.telegram.org/bot{bot_token}/sendPhoto",
+                            data={"chat_id": cid, "caption": caption, "parse_mode": "HTML"},
+                            files={"photo": photo},
+                            timeout=30,
+                        )
+                    if resp.ok:
+                        print(f"[telegram] Posted scoreboard to {cid}")
+                    else:
+                        print(f"[telegram] Failed {cid}: {resp.text[:200]}")
+                except Exception as e:
+                    print(f"[telegram] Error posting to {cid}: {e}")
+
+            # Save updated posted set
+            posted.update(new_cmes)
+            # Trim to last 100
+            posted_list = sorted(posted)[-100:]
+            with open(STATE_PATH, "w") as f:
+                json.dump(posted_list, f)
+        else:
+            print("[telegram] No new CMEs — skipping post")
+    elif not active_events:
+        print("[telegram] No active CMEs on scoreboard")
 
 if __name__ == "__main__":
     main()
