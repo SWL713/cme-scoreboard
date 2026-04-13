@@ -504,12 +504,12 @@ def main():
     ]
     chat_ids = [c for c in chat_ids if c]
 
-    if bot_token and chat_ids and active_events:
+    if bot_token and chat_ids and events:
         # Build set of current CME IDs (event timestamp as key)
         current_ids = set()
-        for ev in active_events:
+        for ev in events:
             # Use first field (event time) as unique ID
-            eid = ev[0].strip() if ev and ev[0] else None
+            eid = ev.get("event_id", ev.get("raw_event_id", "")).strip() if isinstance(ev, dict) else None
             if eid:
                 current_ids.add(eid)
 
@@ -529,7 +529,7 @@ def main():
             print(f"[telegram] New CME(s) detected: {new_cmes}")
             caption = (
                 f"<b>CME Scoreboard Update</b>\n"
-                f"{len(active_events)} active Earth-directed CME(s)\n"
+                f"{len(events)} active Earth-directed CME(s)\n"
                 f"New: {', '.join(sorted(new_cmes))}\n"
                 f"Updated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}"
             )
@@ -557,7 +557,7 @@ def main():
                 json.dump(posted_list, f)
         else:
             print("[telegram] No new CMEs — skipping post")
-    elif not active_events:
+    elif not events:
         print("[telegram] No active CMEs on scoreboard")
 
 if __name__ == "__main__":
