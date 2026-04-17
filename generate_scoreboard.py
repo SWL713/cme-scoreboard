@@ -397,6 +397,15 @@ def main():
         events = []
         fetch_error = str(e)
 
+    # If the CCMC fetch failed, keep the previous (good) card in place instead of
+    # overwriting it with an "Unable to refresh" placeholder. Exit 0 so the runner
+    # treats it as a successful no-op and doesn't commit a bad card.
+    if fetch_error:
+        print(f"[scoreboard] CCMC fetch failed: {fetch_error}")
+        print("[scoreboard] Keeping previous card — skipping output update")
+        import sys
+        sys.exit(0)
+
     font_event = load_font(FONT_REGULAR, 23)
     font_avg = load_font(FONT_BOLD, 28)
     font_median = load_font(FONT_REGULAR, 24)
