@@ -542,6 +542,7 @@ def main():
                 f"New: {', '.join(sorted(new_cmes))}\n"
                 f"Updated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}"
             )
+            all_succeeded = True
             for cid in chat_ids:
                 try:
                     with open(OUTPUT_PATH, "rb") as photo:
@@ -549,21 +550,28 @@ def main():
                             f"https://api.telegram.org/bot{bot_token}/sendPhoto",
                             data={"chat_id": cid, "caption": caption, "parse_mode": "HTML"},
                             files={"photo": photo},
-                            timeout=30,
+                            timeout=90,  # bumped from 30s — 2MB PNG to channel was timing out
                         )
                     if resp.ok:
                         print(f"[telegram] Posted scoreboard to {cid}")
                     else:
                         print(f"[telegram] Failed {cid}: {resp.text[:200]}")
+                        all_succeeded = False
                 except Exception as e:
                     print(f"[telegram] Error posting to {cid}: {e}")
+                    all_succeeded = False
 
-            # Save updated posted set
-            posted.update(new_cmes)
-            # Trim to last 100
-            posted_list = sorted(posted)[-100:]
-            with open(STATE_PATH, "w") as f:
-                json.dump(posted_list, f)
+            # Only mark these CMEs as posted if EVERY destination succeeded.
+            # Otherwise they stay "new" and we retry on the next pipeline tick
+            # — fixes the case where a channel timeout silently dropped the
+            # post but state advanced anyway, blocking all retries.
+            if all_succeeded:
+                posted.update(new_cmes)
+                posted_list = sorted(posted)[-100:]
+                with open(STATE_PATH, "w") as f:
+                    json.dump(posted_list, f)
+            else:
+                print("[telegram] Some destinations failed — NOT marking CMEs as posted (will retry next cycle)")
         else:
             print("[telegram] No new CMEs — skipping post")
     elif not events:
