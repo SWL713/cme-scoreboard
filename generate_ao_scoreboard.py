@@ -266,13 +266,26 @@ def post_facebook(path, caption):
         print('[fb]', 'posted' if r.ok else r.text[:160])
     except Exception as e: print('[fb] error', e)
 
+# A set change must persist this many consecutive runs before we post — rides
+# out CCMC's transient scoreboard scrape flicker so a CME briefly dropping then
+# reappearing never produces a flapping pair of Telegram/FB posts.
+CONFIRM_RUNS = 2
+
 def load_state():
+    """Returns {'posted', 'candidate', 'candidate_count'} or None (first run).
+    Migrates the legacy bare-list format (just the posted set)."""
     try:
-        with open(STATE) as f: return set(json.load(f))
-    except Exception: return None  # None = no state file yet (first run)
-def save_state(ids):
+        with open(STATE) as f: d=json.load(f)
+    except Exception:
+        return None
+    if isinstance(d, list):  # legacy: just the posted-set list
+        return {'posted': d, 'candidate': [], 'candidate_count': 0}
+    return d
+def save_state(posted, candidate, count):
     os.makedirs(DATA_DIR,exist_ok=True)
-    with open(STATE,'w') as f: json.dump(sorted(ids),f)
+    with open(STATE,'w') as f:
+        json.dump({'posted': sorted(posted), 'candidate': sorted(candidate),
+                   'candidate_count': count}, f)
 
 # ---------- main ----------
 def main():
@@ -296,21 +309,39 @@ def main():
 
     render(events)
     cur={e['id'] for e in events}
-    last=load_state()
-    changed = (last is None) or (cur != last)
-    print(f'[set] current={sorted(cur)} last={sorted(last) if last is not None else None} changed={changed}')
+    st=load_state()
+    posted = set(st['posted']) if st else None
+    cand   = set(st.get('candidate', [])) if st else set()
+    cand_n = st.get('candidate_count', 0) if st else 0
+    print(f'[set] current={sorted(cur)} posted={sorted(posted) if posted is not None else None} '
+          f'candidate={sorted(cand)} count={cand_n}')
 
     if DRYRUN:
         print('[dryrun] rendered only, no post'); return
-    # Post only when the set changed AND is non-empty. N->0 updates state silently.
-    if changed and cur:
+
+    # No change vs the last posted set — clear any pending flicker candidate.
+    if posted is not None and cur == posted:
+        if cand_n: save_state(posted, set(), 0)
+        print('[set] unchanged — no post'); return
+
+    # A change is in play. Require it to repeat CONFIRM_RUNS times before acting,
+    # so a one-off CCMC scrape flicker can't post a flapping pair.
+    if cur == cand:
+        cand_n += 1
+    else:
+        cand, cand_n = cur, 1
+
+    if cand_n < CONFIRM_RUNS:
+        print(f'[set] change pending confirmation ({cand_n}/{CONFIRM_RUNS}) — not posting yet')
+        save_state(posted if posted is not None else set(), cand, cand_n); return
+
+    # Confirmed change. Post only when non-empty; N->0 updates state silently.
+    if cur:
         cap=_social_text(events)
         post_telegram(OUTPUT, cap); post_facebook(OUTPUT, cap)
-        save_state(cur)
-    elif changed and not cur:
-        print('[set] dropped to zero — updating state, no post'); save_state(cur)
+        print('[set] confirmed change — posted'); save_state(cur, set(), 0)
     else:
-        print('[set] unchanged — no post')
+        print('[set] confirmed drop to zero — no post, state updated'); save_state(set(), set(), 0)
 
 if __name__ == '__main__':
     main()
