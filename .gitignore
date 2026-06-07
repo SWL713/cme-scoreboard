@@ -1,0 +1,8 @@
+# Aurora Outpost CME card — runtime state + generated png (VPS-local)
+data_ao/
+output/ao_cme_scoreboard.png
+
+# Python
+venv/
+__pycache__/
+*.pyc
